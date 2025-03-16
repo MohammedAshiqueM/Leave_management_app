@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const RegisterEmployee = () => {
   const { registerEmployee, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -57,7 +60,8 @@ const RegisterEmployee = () => {
     return true;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    console.log(">>>>>>>",formData)
     e.preventDefault();
     setError(null);
     
@@ -66,10 +70,10 @@ const RegisterEmployee = () => {
     setIsSubmitting(true);
     
     try {
-      const newEmployee = registerEmployee(formData);
-      
+      const newEmployee = await registerEmployee(formData);
+      console.log("response after reg",newEmployee)
       // Show success message
-      alert(`Employee ${newEmployee.name} registered successfully`);
+      alert(`Employee ${newEmployee.username} registered successfully`);
       
       // Reset form
       setFormData({
@@ -80,10 +84,32 @@ const RegisterEmployee = () => {
         confirmPassword: '',
         department: '',
       });
-      
-    } catch (error) {
-      setError(error.message || "Failed to register employee");
-    } finally {
+      navigate('/manage-users')
+    }catch (error) {
+        console.error("Registration error:", error);
+        
+        // Handle structured API errors
+        if (typeof error === 'object' && error !== null) {
+          // Format the error message from the API response
+          const errorMessages = [];
+          
+          for (const [field, messages] of Object.entries(error)) {
+            if (Array.isArray(messages)) {
+              errorMessages.push(`${field}: ${messages.join(', ')}`);
+            } else if (typeof messages === 'string') {
+              errorMessages.push(`${field}: ${messages}`);
+            }
+          }
+          
+          if (errorMessages.length > 0) {
+            setError(errorMessages.join('\n'));
+          } else {
+            setError("Failed to register employee");
+          }
+        } else {
+          setError(error.message || "Failed to register employee");
+        }
+      } finally {
       setIsSubmitting(false);
     }
   };

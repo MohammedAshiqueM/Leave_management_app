@@ -26,12 +26,13 @@ const UserManagement = () => {
   
   const handleStatusChange = async (userId, newActiveStatus) => {
     try {
+        console.log("handle status",userId)
       await updateUserStatus(userId, newActiveStatus);
       
       // Update local state
       setUsers(prev => 
         prev.map(user => 
-          user.id === userId ? { ...user, active: newActiveStatus } : user
+          user.user.id === userId ? { ...user, user: { ...user.user, is_active: newActiveStatus }} : user
         )
       );
       
@@ -93,23 +94,23 @@ const UserManagement = () => {
                   <td className="px-4 py-4 text-sm capitalize">{user.role}</td>
                   <td className="px-4 py-4 text-sm">
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      user.active 
+                      user.user.is_active 
                         ? 'bg-success/10 text-success' 
                         : 'bg-destructive/10 text-destructive'
                     }`}>
-                      {user.active ? 'Active' : 'Inactive'}
+                      {user.user.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-sm">
                     <button
-                      onClick={() => handleStatusChange(user.id, !user.active)}
+                      onClick={() => handleStatusChange(user.user.id, !user.user.is_active)}
                       className={`px-3 py-1 rounded text-white text-xs ${
-                        user.active 
+                        user.user.is_active 
                           ? 'bg-destructive hover:bg-destructive/90' 
                           : 'bg-success hover:bg-success/90'
                       }`}
                     >
-                      {user.active ? 'Deactivate' : 'Activate'}
+                      {user.user.is_active ? 'Deactivate' : 'Activate'}
                     </button>
                   </td>
                 </tr>

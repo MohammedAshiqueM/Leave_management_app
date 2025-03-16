@@ -15,6 +15,7 @@ const Layout = ({ children }) => {
           <Link to={isAdmin ? '/dashboard' : '/home'} className="text-xl font-bold">
             Leave Management System
           </Link>
+          <p>{currentUser.user.username}</p>
           
           <div className="flex items-center gap-8">
             <div className="hidden md:flex space-x-6">

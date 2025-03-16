@@ -71,9 +71,11 @@ const LoginForm = () => {
         </div>
         
         <div className="text-center text-sm text-gray-600">
-          <p>Demo accounts:</p>
-          <p>Admin: email: admin | password: admin123</p>
-          <p>Employee: email: employee1 | password: emp123</p>
+            {/* <footer className="bg-gray-100 py-4"> */}
+            <div className="container mx-auto px-4 text-center text-gray-600 text-sm">
+            &copy; {new Date().getFullYear()} Leave Management System
+            </div>
+        {/* </footer> */}
         </div>
       </form>
     </div>

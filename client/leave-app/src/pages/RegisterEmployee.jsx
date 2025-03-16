@@ -24,7 +24,7 @@ const RegisterEmployeePage = () => {
           
           <button
             onClick={() => navigate('/manage-users')}
-            className="btn-secondary px-4 py-2 rounded-md"
+            className="btn-primary px-4 py-2 rounded-md"
           >
             View All Users
           </button>

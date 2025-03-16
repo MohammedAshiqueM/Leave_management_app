@@ -2,14 +2,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { createLeave } from '../../api/leave_api';
 
 const LeaveForm = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    leaveType: 'annual',
-    startDate: '',
-    endDate: '',
+    leave_type: 'casual',
+    start_date: '',
+    end_date: '',
     reason: '',
     contactInfo: ''
   });
@@ -17,10 +18,10 @@ const LeaveForm = () => {
   const [error, setError] = useState(null);
 
   const leaveTypes = [
-    { id: 'annual', label: 'Annual Leave' },
+    { id: 'casual', label: 'Casual Leave' },
     { id: 'sick', label: 'Sick Leave' },
-    { id: 'personal', label: 'Personal Leave' },
-    { id: 'unpaid', label: 'Unpaid Leave' }
+    { id: 'other', label: 'Other Leave' },
+    // { id: 'unpaid', label: 'Unpaid Leave' }
   ];
 
   const handleChange = (e) => {
@@ -28,20 +29,20 @@ const LeaveForm = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     
     // Validation
-    if (!formData.startDate || !formData.endDate) {
+    if (!formData.start_date || !formData.end_date) {
       setError("Please select both start and end dates");
       return;
     }
 
-    const startDate = new Date(formData.startDate);
-    const endDate = new Date(formData.endDate);
+    const start_date = new Date(formData.start_date);
+    const end_date = new Date(formData.end_date);
     
-    if (endDate < startDate) {
+    if (end_date < start_date) {
       setError("End date cannot be before start date");
       return;
     }
@@ -49,30 +50,53 @@ const LeaveForm = () => {
     // Submit form
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // Mock data that would normally come from API
-      const leaveRequest = {
-        id: Math.floor(Math.random() * 10000),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        department: currentUser.department,
-        ...formData,
-        status: 'pending',
-        appliedDate: new Date().toISOString(),
-      };
-
-      // Save to localStorage for demo purposes
-      const existingLeaves = JSON.parse(localStorage.getItem('leaveRequests') || '[]');
-      localStorage.setItem('leaveRequests', JSON.stringify([...existingLeaves, leaveRequest]));
-
+    try {
+        // Create leave request object
+        const leaveRequest = {
+          userId: currentUser.id,
+          userName: currentUser.name,
+          department: currentUser.department,
+          ...formData,
+          appliedDate: new Date().toISOString(),
+        };
+    
+        // Call the API function
+        const response = await createLeave(leaveRequest);
+        
+        setIsSubmitting(false);
+        
+        // Show success message
+        alert("Leave request submitted successfully");
+        
+        navigate('/my-leaves');
+      } catch (error) {
+        console.error("Registration error:", error);
+        
+        // Handle structured API errors
+        if (typeof error === 'object' && error !== null) {
+          // Format the error message from the API response
+          const errorMessages = [];
+          
+          for (const [field, messages] of Object.entries(error)) {
+            if (Array.isArray(messages)) {
+              errorMessages.push(`${field}: ${messages.join(', ')}`);
+            } else if (typeof messages === 'string') {
+              errorMessages.push(`${field}: ${messages}`);
+            }
+          }
+          
+          if (errorMessages.length > 0) {
+            setError(errorMessages.join('\n'));
+          } else {
+            setError("Failed to register employee");
+          }
+        } else {
+          setError(error.message || "Failed to register employee");
+        }
+      } finally {
       setIsSubmitting(false);
-      
-      // Show success message (use an alert in this simple version)
-      alert("Leave request submitted successfully");
-      
-      navigate('/my-leaves');
-    }, 1000);
+    }
+
   };
 
   return (
@@ -92,8 +116,8 @@ const LeaveForm = () => {
               Leave Type
             </label>
             <select
-              name="leaveType"
-              value={formData.leaveType}
+              name="leave_type"
+              value={formData.leave_type}
               onChange={handleChange}
               className="input-field w-full"
               required
@@ -112,8 +136,8 @@ const LeaveForm = () => {
             </label>
             <input
               type="date"
-              name="startDate"
-              value={formData.startDate}
+              name="start_date"
+              value={formData.start_date}
               onChange={handleChange}
               className="input-field w-full"
               required
@@ -127,12 +151,12 @@ const LeaveForm = () => {
             </label>
             <input
               type="date"
-              name="endDate"
-              value={formData.endDate}
+              name="end_date"
+              value={formData.end_date}
               onChange={handleChange}
               className="input-field w-full"
               required
-              min={formData.startDate || new Date().toISOString().split('T')[0]}
+              min={formData.start_date  || new Date().toISOString().split('T')[0]}
             />
           </div>
           

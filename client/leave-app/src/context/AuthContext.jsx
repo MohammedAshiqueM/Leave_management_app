@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginUser, userLogout, userProfile } from '../api/auth';
-import { allUsers } from '../api/admin_api';
+import { allUsers, createUser, toggleUserStatus } from '../api/admin_api';
 
 // Create the authentication context
 const AuthContext = createContext(null);
@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
         try {
           // Fetch the user profile
           const profile = await userProfile();
+          console.log("profile",profile)
           setCurrentUser(profile);
         } catch (err) {
           console.error('Failed to fetch profile:', err);
@@ -67,37 +68,35 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Register new employee (admin only)
-  const registerEmployee = (employeeData) => {
-    // Generate ID (in real app, this would come from backend)
-    const newId = Math.max(...users.map(u => u.id)) + 1;
-    
-    const newEmployee = {
-      id: newId,
-      ...employeeData,
-      active: true,
-      role: 'employee' // Force role to be employee
-    };
-    
-    const updatedUsers = [...users, newEmployee];
-    setUsers(updatedUsers);
-    
-    return newEmployee;
+  const registerEmployee = async (employeeData) => {
+    try {
+        console.log("insde auth the form data is",employeeData)
+        const newUser = await createUser(employeeData);
+        return newUser;
+      } catch (error) {
+        console.error("Error creating user:", error);
+        throw error;
+      }
   };
 
   // Update user status (block/unblock)
-  const updateUserStatus = (userId, active) => {
-    const updatedUsers = users.map(user => 
-      user.id === userId ? { ...user, active } : user
-    );
-    
-    setUsers(updatedUsers);
-    
-    // If blocking current user, force logout
-    if (!active && currentUser && currentUser.id === userId) {
-      logout();
+  const updateUserStatus = async (userId, newActiveStatus) => {
+    try {
+        console.log(userId,",",newActiveStatus)
+      const success = await toggleUserStatus(userId);
+      if (success) {
+        setCurrentUser((prevUser) =>
+          prevUser?.id === userId ? { ...prevUser, active: !prevUser.active } : prevUser
+        );
+  
+        // If blocking the current user, force logout
+        if (!prevUser?.active && prevUser?.id === userId) {
+          logout();
+        }
+      }
+    } catch (error) {
+      console.error("Error updating user status:", error);
     }
-    
-    return updatedUsers.find(user => user.id === userId);
   };
 
   // Get all users (admin only)
