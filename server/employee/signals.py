@@ -11,7 +11,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     Signal to create a Profile whenever a User is created.
     """
     if created:
-        # Set the role based on whether the user is a superuser
+        # role based on whether the user is a superuser
         role = 'admin' if instance.is_superuser else 'employee'
         Profile.objects.create(user=instance, role=role)
 

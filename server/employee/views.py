@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ProfileSerializer
+from .serializers import ProfileSerializer, LeaveRequestSerializer, UserSerializer
+from .models import LeaveRequest
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -14,7 +15,21 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
         
-        
+class LeaveView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        serializer = LeaveRequestSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+        leaves = LeaveRequest.objects.filter(user=request.user)
+        serializer = LeaveRequestSerializer(leaves, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 

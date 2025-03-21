@@ -19,9 +19,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
     
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'first_name', 'last_name']
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 'is_active', 'password']
+        
+    def create(self, validated_data):
+        """Override create method to hash the password before saving."""
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -40,7 +49,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             'id', 'user', 'leave_type', 'start_date', 'end_date', 'no_days', 
             'reason', 'status', 'reason_not_approved'
         ]
-        read_only_fields = ['id', 'user', 'no_days', 'status']
+        read_only_fields = ['id', 'user', 'no_days',]
 
     def validate(self, data):
         """
@@ -51,10 +60,13 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
         """
         current_date = timezone.now().date()
         user = self.context['request'].user
-        profile = user.profile  # Assuming a one-to-one relationship between User and Profile
+        profile = user.profile
+
+        start_date = data['start_date'].date()
+        end_date = data['end_date'].date()
 
         # 1. Check if start_date or end_date is in the past
-        if data['start_date'] < current_date or data['end_date'] < current_date:
+        if start_date < current_date or end_date < current_date:
             raise serializers.ValidationError({
                 "start_date": "Leave dates cannot be in the past.",
                 "end_date": "Leave dates cannot be in the past."
@@ -65,7 +77,7 @@ class LeaveRequestSerializer(serializers.ModelSerializer):
             user=user,
             start_date__lte=data['end_date'],
             end_date__gte=data['start_date'],
-        ).exclude(id=self.instance.id if self.instance else None)
+        ).exclude(id=self.instance.id if self.instance else None ).exclude(status='rejected')
 
         if overlapping_leaves.exists():
             raise serializers.ValidationError({

@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from datetime import timedelta
 
 User = get_user_model()
-
+User._meta.get_field('email')._unique = True
 class Profile(models.Model):
     ROLE_CHOICES = (
         ('employee', 'Employee'),
