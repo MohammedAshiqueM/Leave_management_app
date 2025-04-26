@@ -51,16 +51,27 @@ def create_superuser():
     email = os.getenv("DJANGO_SUPERUSER_EMAIL", "admin@example.com")  # Default email
     password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "securepassword123")  # Default password
 
-    if not User.objects.filter(username=username).exists():
-        print(f"Creating superuser: {username}")
-        user = User.objects.create_superuser(username=username, email=email, password=password)
-        print("Superuser created successfully.")
+    # Check if the superuser exists
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={'email': email, 'is_staff': True, 'is_superuser': True}
+    )
 
-        # Create a Profile for the superuser
-        Profile.objects.create(user=user, role='admin')
-        print("Profile created for the superuser.")
+    if created:
+        # Set the password for the newly created superuser
+        user.set_password(password)
+        user.save()
+        print(f"Superuser '{username}' created successfully.")
     else:
-        print("Superuser already exists.")
+        print(f"Superuser '{username}' already exists.")
+
+    # Check if the Profile exists for the superuser
+    profile, profile_created = Profile.objects.get_or_create(user=user, defaults={'role': 'admin'})
+
+    if profile_created:
+        print(f"Profile created for superuser '{username}'.")
+    else:
+        print(f"Profile already exists for superuser '{username}'.")
 
 if __name__ == "__main__":
     create_superuser()
