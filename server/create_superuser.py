@@ -2,17 +2,23 @@ import os
 from django.conf import settings
 import dj_database_url
 
-# creating super user
+# Configure Django settings programmatically
 if not settings.configured:
-    settings.configure(
-        DATABASES={
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3', 
-                'NAME': 'db.sqlite3',
-            }
-        },
-        db_from_env = dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600)
+    # Use SQLite for local testing or PostgreSQL for production
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'db.sqlite3',  # Path to your SQLite database
+        }
+    }
+
+    # Update DATABASES with Render's PostgreSQL configuration if available
+    db_from_env = dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600)
+    if db_from_env:
         DATABASES['default'].update(db_from_env)
+
+    settings.configure(
+        DATABASES=DATABASES,
         INSTALLED_APPS=[
             'django.contrib.admin',
             'django.contrib.auth',
@@ -20,21 +26,22 @@ if not settings.configured:
             'django.contrib.sessions',
             'django.contrib.messages',
             'django.contrib.staticfiles',
-            'leave_app', 
+            'leave_app',  # Replace with your app name
         ],
-        SECRET_KEY=os.getenv('SECRET_KEY')
+        SECRET_KEY=os.getenv('SECRET_KEY', 'your-secret-key-for-script'),  # Use a secure key for production
     )
 
 # Initialize Django
 import django
 django.setup()
 
+# Import Django components AFTER initializing Django
 from django.contrib.auth.models import User
 
 def create_superuser():
     username = os.getenv("DJANGO_SUPERUSER_USERNAME", "admin")  # Default username
     email = os.getenv("DJANGO_SUPERUSER_EMAIL", "admin@example.com")  # Default email
-    password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "12345")  # Default password
+    password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "securepassword123")  # Default password
 
     if not User.objects.filter(username=username).exists():
         print(f"Creating superuser: {username}")
