@@ -37,7 +37,7 @@ django.setup()
 
 # Import Django components AFTER initializing Django
 from django.contrib.auth.models import User
-from leave_app.models import Profile  # Import the Profile model
+from employee.models import Profile  # Import the Profile model
 
 def create_superuser():
     username = os.getenv("DJANGO_SUPERUSER_USERNAME", "admin")  # Default username
