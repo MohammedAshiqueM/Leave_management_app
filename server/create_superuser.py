@@ -37,6 +37,7 @@ django.setup()
 
 # Import Django components AFTER initializing Django
 from django.contrib.auth.models import User
+from leave_app.models import Profile  # Import the Profile model
 
 def create_superuser():
     username = os.getenv("DJANGO_SUPERUSER_USERNAME", "admin")  # Default username
@@ -45,8 +46,12 @@ def create_superuser():
 
     if not User.objects.filter(username=username).exists():
         print(f"Creating superuser: {username}")
-        User.objects.create_superuser(username=username, email=email, password=password)
+        user = User.objects.create_superuser(username=username, email=email, password=password)
         print("Superuser created successfully.")
+
+        # Create a Profile for the superuser
+        Profile.objects.create(user=user, role='admin')
+        print("Profile created for the superuser.")
     else:
         print("Superuser already exists.")
 
