@@ -33,7 +33,7 @@ if not settings.configured:
             'corsheaders',
             'drf_yasg',
             # Local apps
-            'employee', # Replace with your app name
+            'employee',
         ],
         SECRET_KEY=os.getenv('SECRET_KEY', 'your-secret-key-for-script'),  # Use a secure key for production
     )
