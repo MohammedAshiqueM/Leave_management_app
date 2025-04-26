@@ -26,7 +26,14 @@ if not settings.configured:
             'django.contrib.sessions',
             'django.contrib.messages',
             'django.contrib.staticfiles',
-            'leave_app',  # Replace with your app name
+            # Third-party apps
+            'rest_framework',
+            'rest_framework_simplejwt',
+            'rest_framework_simplejwt.token_blacklist',
+            'corsheaders',
+            'drf_yasg',
+            # Local apps
+            'employee', # Replace with your app name
         ],
         SECRET_KEY=os.getenv('SECRET_KEY', 'your-secret-key-for-script'),  # Use a secure key for production
     )
