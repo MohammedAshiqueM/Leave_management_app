@@ -1,5 +1,6 @@
 import os
 from django.conf import settings
+import dj_database_url
 
 # creating super user
 if not settings.configured:
@@ -10,6 +11,8 @@ if not settings.configured:
                 'NAME': 'db.sqlite3',
             }
         },
+        db_from_env = dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600)
+        DATABASES['default'].update(db_from_env)
         INSTALLED_APPS=[
             'django.contrib.admin',
             'django.contrib.auth',
