@@ -1,1 +1,1 @@
-export const baseUrl = 'http://127.0.0.1:8000/api/'
+export const baseUrl = 'https://leave-management-app-y9b7.onrender.com/api/'

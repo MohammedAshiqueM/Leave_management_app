@@ -1,17 +1,28 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const LoginForm = () => {
   const [email, setemail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, error, loading } = useAuth();
+  const navigate = useNavigate();
+  const { login, error, loading, currentUser } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     login(email, password);
   };
 
+  useEffect(()=>{
+    if(currentUser){
+        if (currentUser.role === 'admin') {
+            navigate('/dashboard');
+          } else {
+            navigate('/home');
+          }
+    }
+  },[currentUser])
   return (
     <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-medium">
       <div className="text-center">
